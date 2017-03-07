@@ -1,3 +1,9 @@
+// server.js
+
+// BASE SETUP
+// =============================================================================
+
+// call the packages we need
 var express    = require('express');        // call express
 var app        = express();                 // define our app using express
 var bodyParser = require('body-parser');
@@ -7,8 +13,14 @@ var passport   = require('passport');
 var config     = require('./config/database');
 var jwt        = require('jwt-simple');
 
+var Product     = require('./app/models/product');
+
 var port = process.env.PORT || 8080;        // set our port
+
+mongoose.connect(config.database);
 require('./config/passport')(passport);
+
+// require('./config/passport')(passport);
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -24,6 +36,8 @@ app.use(passport.initialize());
 // ROUTES FOR OUR API
 // =============================================================================
 var router = express.Router();              // get an instance of the express Router
+
+// test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 
 router.use(function(req, res, next) {
     console.log('Something is happening');
@@ -46,18 +60,33 @@ router.get('/', function(req, res) {
     res.json({ message: 'hooray! welcome to our api!' });
 });
 
+// MOVIE ROUTES
+router.route('/products')
+  .post(function(req, res) {
+    var product = new Product();
+    product.name = req.body.name;
+    product.shortDescription = req.body.shortDescription;
+    product.description = req.body.description;
+    product.price = req.body.price;
+    product.image = req.body.image;
 
+    product.save(function(err) {
+        if (err) {
+          res.send({status: false, error: err});
+        }
 
+        res.json({status: true, message: 'Product saved'});
+    });
+  })
+  .get(function(req, res) {
+    Product.find(function(err, products) {
+      if (err) {
+        res.send({status: false, error: err});
+      }
 
-
-
-
-
-
-
-
-
-
+      res.json({status: true, data: products});
+    });
+  });
 
 
 
