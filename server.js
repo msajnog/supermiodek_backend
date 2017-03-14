@@ -12,6 +12,8 @@ var mongoose   = require('mongoose');
 var passport   = require('passport');
 var config     = require('./config/database');
 var jwt        = require('jwt-simple');
+var fs         = require('fs');
+var multiparty = require('connect-multiparty');
 
 var Product     = require('./app/models/product');
 
@@ -86,6 +88,15 @@ router.route('/products')
 
       res.json({status: true, data: products});
     });
+  });
+
+  router.post('/upload', multiparty({ uploadDir: './media' }), function (req, res) {
+      var file = req.files.file;
+
+      res.status(200).send({
+          status: true,
+          path: file.path
+      });
   });
 
 
