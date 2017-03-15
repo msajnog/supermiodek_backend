@@ -35,6 +35,8 @@ app.use(morgan('dev'));
 // Use the passport package in our application
 app.use(passport.initialize());
 
+app.use(express.static(__dirname + '/media'));
+
 // ROUTES FOR OUR API
 // =============================================================================
 var router = express.Router();              // get an instance of the express Router
@@ -93,9 +95,11 @@ router.route('/products')
   router.post('/upload', multiparty({ uploadDir: './media' }), function (req, res) {
       var file = req.files.file;
 
+      var imageName = file.path.split('/').reverse()[0];
+
       res.status(200).send({
           status: true,
-          path: file.path
+          path: imageName
       });
   });
 
