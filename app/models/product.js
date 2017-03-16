@@ -26,6 +26,17 @@ var ProductSchema = new Schema({
         type: String,
         unique: false,
         required: true
+    },
+    status: {
+        type: String,
+        unique: false,
+        required: true
+    },
+    availability: {
+        type: Number,
+        unique: false,
+        min: 0,
+        required: true
     }
 });
 

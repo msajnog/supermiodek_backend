@@ -4,20 +4,20 @@
 // =============================================================================
 
 // call the packages we need
-var express    = require('express');        // call express
-var app        = express();                 // define our app using express
+var express = require('express'); // call express
+var app = express(); // define our app using express
 var bodyParser = require('body-parser');
-var morgan     = require('morgan');
-var mongoose   = require('mongoose');
-var passport   = require('passport');
-var config     = require('./config/database');
-var jwt        = require('jwt-simple');
-var fs         = require('fs');
+var morgan = require('morgan');
+var mongoose = require('mongoose');
+var passport = require('passport');
+var config = require('./config/database');
+var jwt = require('jwt-simple');
+var fs = require('fs');
 var multiparty = require('connect-multiparty');
 
-var Product     = require('./app/models/product');
+var Product = require('./app/models/product');
 
-var port = process.env.PORT || 8080;        // set our port
+var port = process.env.PORT || 8080; // set our port
 
 mongoose.connect(config.database);
 require('./config/passport')(passport);
@@ -26,7 +26,9 @@ require('./config/passport')(passport);
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 app.use(bodyParser.json());
 
 // log to console
@@ -39,7 +41,7 @@ app.use(express.static(__dirname + '/media'));
 
 // ROUTES FOR OUR API
 // =============================================================================
-var router = express.Router();              // get an instance of the express Router
+var router = express.Router(); // get an instance of the express Router
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 
@@ -61,47 +63,85 @@ router.use(function(req, res, next) {
 });
 
 router.get('/', function(req, res) {
-    res.json({ message: 'hooray! welcome to our api!' });
+    res.json({
+        message: 'hooray! welcome to our api!'
+    });
 });
 
 // MOVIE ROUTES
 router.route('/products')
-  .post(function(req, res) {
-    var product = new Product();
-    product.name = req.body.name;
-    product.shortDescription = req.body.shortDescription;
-    product.description = req.body.description;
-    product.price = req.body.price;
-    product.image = req.body.image;
+    .post(function(req, res) {
+        var product = new Product();
 
-    product.save(function(err) {
+        product.name = req.body.name;
+        product.shortDescription = req.body.shortDescription;
+        product.description = req.body.description;
+        product.price = req.body.price;
+        product.status = req.body.status;
+        product.availability = req.body.availability;
+        product.image = req.body.image;
+
+        product.save(function(err) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                message: 'Produkt został dodany'
+            });
+        });
+    })
+    .get(function(req, res) {
+        Product.find(function(err, products) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+            }
+
+            res.json({
+                status: true,
+                data: products
+            });
+        });
+    });
+
+router.route('/products/:status')
+.get(function(req, res) {    
+    Product.find({$and: [{"status": req.params.status}, {"availability": {$gt: 0}}]}, function(err, products) {
         if (err) {
-          res.send({status: false, error: err});
+            res.send({
+                status: false,
+                error: err
+            });
         }
 
-        res.json({status: true, message: 'Product saved'});
+        res.json({
+            status: true,
+            data: products
+        });
     });
-  })
-  .get(function(req, res) {
-    Product.find(function(err, products) {
-      if (err) {
-        res.send({status: false, error: err});
-      }
+});
 
-      res.json({status: true, data: products});
+router.post('/upload', multiparty({
+    uploadDir: './media'
+}), function(req, res) {
+    var file = req.files.file;
+
+    var imageName = file.path.split('/').reverse()[0];
+
+    res.status(200).send({
+        status: true,
+        path: imageName
     });
-  });
-
-  router.post('/upload', multiparty({ uploadDir: './media' }), function (req, res) {
-      var file = req.files.file;
-
-      var imageName = file.path.split('/').reverse()[0];
-
-      res.status(200).send({
-          status: true,
-          path: imageName
-      });
-  });
+});
 
 
 // REGISTER OUR ROUTES -------------------------------
