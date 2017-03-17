@@ -113,8 +113,26 @@ router.route('/products')
         });
     });
 
+router.route('/product/:id')
+.get(function (req, res) {
+    console.log(req.params);
+    Product.find({_id: req.params.id}, function (err, product) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+        }
+
+        res.json({
+            status: true,
+            data: product
+        });
+    });
+});
+
 router.route('/products/:status')
-.get(function(req, res) {    
+.get(function(req, res) {
     Product.find({$and: [{"status": req.params.status}, {"availability": {$gt: 0}}]}, function(err, products) {
         if (err) {
             res.send({
