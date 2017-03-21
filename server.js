@@ -10,6 +10,8 @@ var bodyParser = require('body-parser');
 var morgan = require('morgan');
 var mongoose = require('mongoose');
 var passport = require('passport');
+// var db = require('mongodb').Db;
+var ObjectID = require('mongodb').ObjectID;
 var config = require('./config/database');
 var jwt = require('jwt-simple');
 var fs = require('fs');
@@ -115,18 +117,55 @@ router.route('/products')
 
 router.route('/product/:id')
 .get(function (req, res) {
-    console.log(req.params);
     Product.find({_id: req.params.id}, function (err, product) {
         if (err) {
             res.send({
                 status: false,
                 error: err
             });
+
+            return;
         }
 
         res.json({
             status: true,
-            data: product
+            data: product[0]
+        });
+    });
+})
+.put(function (req, res) {
+    Product.update({_id: req.params.id}, req.body, function (err, product) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        res.json({
+            status: true,
+            message: 'Produkt został zaktualizowany'
+        });
+
+    });
+})
+.delete(function(req, res) {
+    var ObjectId = new ObjectID(req.params.id);
+    Product.remove({_id: ObjectId}, function (err, test) {
+        if(err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        res.json({
+            status: true,
+            message: 'Produkt został usunięty'
         });
     });
 });
@@ -139,6 +178,8 @@ router.route('/products/:status')
                 status: false,
                 error: err
             });
+
+            return;
         }
 
         res.json({
