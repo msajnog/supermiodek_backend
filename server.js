@@ -2,7 +2,7 @@
 
 // BASE SETUP
 // =============================================================================
-
+'use strict';
 // call the packages we need
 var express = require('express'); // call express
 var app = express(); // define our app using express
@@ -13,11 +13,17 @@ var passport = require('passport');
 // var db = require('mongodb').Db;
 var ObjectID = require('mongodb').ObjectID;
 var config = require('./config/database');
-var jwt = require('jwt-simple');
-var fs = require('fs');
+// var jwt = require('jwt-simple');
+// var fs = require('fs');
 var multiparty = require('connect-multiparty');
 
+// Konfiguracja
+// https://www.google.com/settings/security/lesssecureapps - Turn on
+// https://accounts.google.com/DisplayUnlockCaptcha
+const nodemailer = require('nodemailer');
+
 var Product = require('./app/models/product');
+var Order = require('./app/models/order');
 
 var port = process.env.PORT || 8080; // set our port
 
@@ -134,7 +140,7 @@ router.route('/product/:id')
     });
 })
 .put(function (req, res) {
-    Product.update({_id: req.params.id}, req.body, function (err, product) {
+    Product.update({_id: req.params.id}, req.body, function (err) {
         if (err) {
             res.send({
                 status: false,
@@ -153,7 +159,7 @@ router.route('/product/:id')
 })
 .delete(function(req, res) {
     var ObjectId = new ObjectID(req.params.id);
-    Product.remove({_id: ObjectId}, function (err, test) {
+    Product.remove({_id: ObjectId}, function (err) {
         if(err) {
             res.send({
                 status: false,
@@ -199,6 +205,95 @@ router.post('/upload', multiparty({
     res.status(200).send({
         status: true,
         path: imageName
+    });
+});
+
+router.route('/orders')
+.get(function(req, res) {
+    Order.find(function(err, orders) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+        }
+
+        res.json({
+            status: true,
+            data: orders
+        });
+    });
+});
+
+router.route('/order')
+.post(function(req, res) {
+    console.log(req.body);
+    var order = new Order();
+
+    order.client = req.body.client;
+    order.products = req.body.products;
+    order.productsTotal = req.body.productsTotal;
+    order.total = req.body.total;
+    order.shipment = req.body.shipment;
+
+    order.save(function(err) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        //============ SEND EMAIL ==================//
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'sajnogmat@gmail.com',
+                pass: 'corellon'
+            }
+        });
+
+        var productsList = `<table><tr><th>Nazwa</th><th>Ilość</th><th>Cena</th><th>Suma</th>`;
+        order.products.forEach(function(product) {
+            productsList += `<tr>
+            <td>${product.name}</td>
+            <td>${product.quantity}</td>
+            <td>${product.price}</td>
+            <td>${parseFloat(product.price)*product.quantity}</td></tr>`
+        });
+
+        productsList += `</table>`;
+
+        let mailOptions = {
+            from: '"Supermiodek"', // sender address
+            to: req.body.client.email, // list of receivers
+            subject: 'Zamówienie z Supermiodek.pl', // Subject line
+            // text: 'Hello world ?', // plain text body
+            html: `<table style="width: 100%">
+            <tr><td><h1>Dzień dobry ${order.client.name} ${order.client.surname}</td></tr>
+            <tr><td>Lista zamówionych produktów:</td></tr>
+            <tr><td>${productsList}</td></tr>
+            <tr><td>Adres dostawy:</td></tr>
+            <tr><td>${order.client.shipment}</td></tr>
+            <tr><td>Sposób dostawy:</td></tr>
+            <tr><td>${order.shipment.name} ${order.shipment.price} zł</td></tr>
+            </table>`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return console.log(error);
+            }
+            console.log('Message %s sent: %s', info.messageId, info.response);
+        });
+        //============ SEND EMAIL ==================//
+
+        res.json({
+            status: true,
+            message: 'Zamówienie zostało złożone. Na podany adres otrzymasz maila z potwierdzeniem'
+        });
     });
 });
 
