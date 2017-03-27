@@ -227,17 +227,30 @@ router.route('/orders')
 
 router.route('/order')
 .post(function(req, res) {
-    console.log(req.body);
     var order = new Order();
 
+    var products = [];
+
+    req.body.products.forEach(function(product) {
+        products.push({
+            id: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: product.quantity,
+        });
+    });
+
     order.client = req.body.client;
-    order.products = req.body.products;
+    order.products = products;
     order.productsTotal = req.body.productsTotal;
     order.total = req.body.total;
-    order.shipment = req.body.shipment;
+    order.shipment.id = req.body.shipment._id;
+    order.shipment.name = req.body.shipment.name;
+    order.shipment.price = req.body.shipment.price;
 
     order.save(function(err) {
         if (err) {
+            console.log(err);
             res.send({
                 status: false,
                 error: err
@@ -255,13 +268,20 @@ router.route('/order')
             }
         });
 
-        var productsList = `<table><tr><th>Nazwa</th><th>Ilość</th><th>Cena</th><th>Suma</th>`;
+        var productsList = `<table width="100%" cellspacing="0" style="width: 100%; text-align: left; border: 1px solid grey; border-bottom: 0; margin: 10px 0 30px 0;">
+        <tr>
+        <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Nazwa</th>
+        <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Ilość</th>
+        <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Cena</th>
+        <th style="padding:5px; border-bottom: 1px solid grey; ">Suma</th>
+        </tr>`;
         order.products.forEach(function(product) {
             productsList += `<tr>
-            <td>${product.name}</td>
-            <td>${product.quantity}</td>
-            <td>${product.price}</td>
-            <td>${parseFloat(product.price)*product.quantity}</td></tr>`
+            <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.name}</td>
+            <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.quantity}</td>
+            <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.price} zł</td>
+            <td style="padding:5px; border-bottom: 1px solid grey;">${parseFloat(product.price)*product.quantity} zł</td>
+            </tr>`
         });
 
         productsList += `</table>`;
@@ -270,15 +290,17 @@ router.route('/order')
             from: '"Supermiodek"', // sender address
             to: req.body.client.email, // list of receivers
             subject: 'Zamówienie z Supermiodek.pl', // Subject line
-            // text: 'Hello world ?', // plain text body
-            html: `<table style="width: 100%">
+            text: 'Hello world ?', // plain text body
+            html: `<table width="600" style="width: 600px">
             <tr><td><h1>Dzień dobry ${order.client.name} ${order.client.surname}</td></tr>
-            <tr><td>Lista zamówionych produktów:</td></tr>
+            <tr><td><b>Lista zamówionych produktów:</b></td></tr>
             <tr><td>${productsList}</td></tr>
-            <tr><td>Adres dostawy:</td></tr>
-            <tr><td>${order.client.shipment}</td></tr>
-            <tr><td>Sposób dostawy:</td></tr>
-            <tr><td>${order.shipment.name} ${order.shipment.price} zł</td></tr>
+            <tr><td><b>Adres dostawy:</b></td></tr>
+            <tr><td style="padding-bottom: 15px;">${order.client.shipment}</td></tr>
+            <tr><td><b>Sposób dostawy:</b></td></tr>
+            <tr><td style="padding-bottom: 15px;">${order.shipment.name} ${order.shipment.price} zł</td></tr>
+            <tr><td><b>Dane do płatności:</b></td></tr>
+            <tr><td style="padding-bottom: 15px;">Jan Kowalski<br>ul. Warszawska 7/23<br>22-900 Lublin<br>Nr konta: 1234 1234 1234 1234 1234</td></tr>
             </table>`
         };
 
