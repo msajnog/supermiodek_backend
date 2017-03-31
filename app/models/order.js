@@ -65,6 +65,14 @@ var OrderSchema = new Schema({
     },
     shipment: {
         unique: false,
+        name: {
+            type: String,
+            required: true
+        },
+        price: {
+            type: Number,
+            required: true
+        }
     }
 });
 

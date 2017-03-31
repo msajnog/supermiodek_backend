@@ -225,6 +225,61 @@ router.route('/orders')
     });
 });
 
+router.route('/order/:id')
+.get(function (req, res) {
+    Order.find({_id: req.params.id}, function (err, order) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        res.json({
+            status: true,
+            data: order[0]
+        });
+    });
+})
+.put(function (req, res) {
+    Order.update({_id: req.params.id}, req.body, function (err) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        res.json({
+            status: true,
+            message: 'Zamówienie został zaktualizowane'
+        });
+
+    });
+})
+.delete(function(req, res) {
+    var ObjectId = new ObjectID(req.params.id);
+    Order.remove({_id: ObjectId}, function (err) {
+        if(err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        res.json({
+            status: true,
+            message: 'Zamówienie został usunięte'
+        });
+    });
+});
+
 router.route('/order')
 .post(function(req, res) {
     var order = new Order();
@@ -281,7 +336,7 @@ router.route('/order')
             <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.quantity}</td>
             <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.price} zł</td>
             <td style="padding:5px; border-bottom: 1px solid grey;">${parseFloat(product.price)*product.quantity} zł</td>
-            </tr>`
+            </tr>`;
         });
 
         productsList += `</table>`;
