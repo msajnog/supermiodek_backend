@@ -4,28 +4,28 @@
 // =============================================================================
 'use strict';
 // call the packages we need
-var express = require('express'); // call express
-var app = express(); // define our app using express
-var bodyParser = require('body-parser');
-var morgan = require('morgan');
-var mongoose = require('mongoose');
-var passport = require('passport');
+const express = require('express'); // call express
+const app = express(); // define our app using express
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const mongoose = require('mongoose');
+const passport = require('passport');
 // var db = require('mongodb').Db;
-var ObjectID = require('mongodb').ObjectID;
-var config = require('./config/database');
+const ObjectID = require('mongodb').ObjectID;
+const config = require('./config/database');
 // var jwt = require('jwt-simple');
 // var fs = require('fs');
-var multiparty = require('connect-multiparty');
+const multiparty = require('connect-multiparty');
 
 // Konfiguracja
 // https://www.google.com/settings/security/lesssecureapps - Turn on
 // https://accounts.google.com/DisplayUnlockCaptcha
 const nodemailer = require('nodemailer');
 
-var Product = require('./app/models/product');
-var Order = require('./app/models/order');
+const Product = require('./app/models/product');
+const Order = require('./app/models/order');
 
-var port = process.env.PORT || 8080; // set our port
+const port = process.env.PORT || 8080; // set our port
 
 mongoose.connect(config.database);
 require('./config/passport')(passport);
@@ -49,7 +49,7 @@ app.use(express.static(__dirname + '/media'));
 
 // ROUTES FOR OUR API
 // =============================================================================
-var router = express.Router(); // get an instance of the express Router
+const router = express.Router(); // get an instance of the express Router
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 
@@ -79,7 +79,7 @@ router.get('/', function(req, res) {
 // MOVIE ROUTES
 router.route('/products')
     .post(function(req, res) {
-        var product = new Product();
+        let product = new Product();
 
         product.name = req.body.name;
         product.shortDescription = req.body.shortDescription;
@@ -158,7 +158,7 @@ router.route('/product/:id')
     });
 })
 .delete(function(req, res) {
-    var ObjectId = new ObjectID(req.params.id);
+    let ObjectId = new ObjectID(req.params.id);
     Product.remove({_id: ObjectId}, function (err) {
         if(err) {
             res.send({
@@ -198,9 +198,9 @@ router.route('/products/:status')
 router.post('/upload', multiparty({
     uploadDir: './media'
 }), function(req, res) {
-    var file = req.files.file;
+    let file = req.files.file;
 
-    var imageName = file.path.split('/').reverse()[0];
+    let imageName = file.path.split('/').reverse()[0];
 
     res.status(200).send({
         status: true,
@@ -282,17 +282,20 @@ router.route('/order/:id')
 
 router.route('/order')
 .post(function(req, res) {
-    var order = new Order();
+    let order = new Order();
+    let products = [];
 
-    var products = [];
-
-    req.body.products.forEach(function(product) {
+    req.body.products.forEach(function(orderedProduct) {
         products.push({
-            id: product._id,
-            name: product.name,
-            price: product.price,
-            quantity: product.quantity,
+            id: orderedProduct._id,
+            name: orderedProduct.name,
+            price: orderedProduct.price,
+            quantity: orderedProduct.quantity,
+            image: orderedProduct.image
         });
+
+        var newAvailability = orderedProduct.availability - orderedProduct.quantity;
+        Product.update({_id: orderedProduct._id}, {availability: newAvailability}, function(err, message) {});
     });
 
     order.client = req.body.client;
@@ -335,7 +338,7 @@ router.route('/order')
             <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.name}</td>
             <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.quantity}</td>
             <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.price} zł</td>
-            <td style="padding:5px; border-bottom: 1px solid grey;">${parseFloat(product.price)*product.quantity} zł</td>
+            <td style="padding:5px; border-bottom: 1px solid grey;">${(parseFloat(product.price)*product.quantity).toFixed(2)} zł</td>
             </tr>`;
         });
 
@@ -369,7 +372,7 @@ router.route('/order')
 
         res.json({
             status: true,
-            message: 'Zamówienie zostało złożone. Na podany adres otrzymasz maila z potwierdzeniem'
+            message: 'Zamówienie zostało przyjęte. Na podany adres otrzymasz wiadomość z potwierdzeniem.'
         });
     });
 });
