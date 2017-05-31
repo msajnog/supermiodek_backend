@@ -24,6 +24,7 @@ const nodemailer = require('nodemailer');
 
 const Product = require('./app/models/product');
 const Order = require('./app/models/order');
+const Config = require('./app/models/config');
 
 const port = process.env.PORT || 8080; // set our port
 
@@ -375,6 +376,33 @@ router.route('/order')
             message: 'Zamówienie zostało przyjęte. Na podany adres otrzymasz wiadomość z potwierdzeniem.'
         });
     });
+});
+
+router.route('/config')
+.get(function(req, res) {
+
+})
+.post(function (req, res) {
+    let config = new Config(req.body);
+
+    config.save(function(err) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        res.json({
+            status: true,
+            message: 'Konfiguracja została zapisana'
+        });
+    });
+})
+.put(function (req, res) {
+
 });
 
 
