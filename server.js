@@ -380,7 +380,19 @@ router.route('/order')
 
 router.route('/config')
 .get(function(req, res) {
+    Config.find(function(err, config) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+        }
 
+        res.json({
+            status: true,
+            data: config[0]
+        });
+    });
 })
 .post(function (req, res) {
     let config = new Config(req.body);
@@ -400,9 +412,26 @@ router.route('/config')
             message: 'Konfiguracja została zapisana'
         });
     });
-})
-.put(function (req, res) {
+});
 
+router.route('/config/:id')
+.put(function (req, res) {
+    Config.update({_id: req.params.id}, req.body, function (err) {
+        if (err) {
+            res.send({
+                status: false,
+                error: err
+            });
+
+            return;
+        }
+
+        res.json({
+            status: true,
+            message: 'Konfiguracja została zaktualizowana'
+        });
+
+    });
 });
 
 
