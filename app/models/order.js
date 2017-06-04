@@ -6,10 +6,20 @@ var OrderSchema = new Schema({
         type: Date,
         default: Date.now
     },
-    status: {
-        type: String,
-        default: 'Nowe'
-    },
+    status: [{
+        unique: false,
+        name: {
+            type: String,
+            required: false,
+        },
+        _id: {
+            type: String,
+            unique: false,
+        },
+        selected: {
+            type: Boolean
+        }
+    }],
     client: {
         name: {
             type: String,
@@ -67,7 +77,7 @@ var OrderSchema = new Schema({
         type: Number,
         required: true
     },
-    shipment: {
+    shipments: [{
         unique: false,
         name: {
             type: String,
@@ -76,8 +86,11 @@ var OrderSchema = new Schema({
         price: {
             type: Number,
             required: true
+        },
+        selected: {
+            type: Boolean
         }
-    }
+    }]
 });
 
 module.exports = mongoose.model('Order', OrderSchema);

@@ -54,7 +54,7 @@ const router = express.Router(); // get an instance of the express Router
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     console.log('Something is happening');
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:9000');
@@ -71,7 +71,7 @@ router.use(function(req, res, next) {
     next();
 });
 
-router.get('/', function(req, res) {
+router.get('/', function (req, res) {
     res.json({
         message: 'hooray! welcome to our api!'
     });
@@ -79,7 +79,7 @@ router.get('/', function(req, res) {
 
 // MOVIE ROUTES
 router.route('/products')
-    .post(function(req, res) {
+    .post(function (req, res) {
         let product = new Product();
 
         product.name = req.body.name;
@@ -90,7 +90,7 @@ router.route('/products')
         product.availability = req.body.availability;
         product.image = req.body.image;
 
-        product.save(function(err) {
+        product.save(function (err) {
             if (err) {
                 res.send({
                     status: false,
@@ -106,8 +106,8 @@ router.route('/products')
             });
         });
     })
-    .get(function(req, res) {
-        Product.find(function(err, products) {
+    .get(function (req, res) {
+        Product.find(function (err, products) {
             if (err) {
                 res.send({
                     status: false,
@@ -123,82 +123,82 @@ router.route('/products')
     });
 
 router.route('/product/:id')
-.get(function (req, res) {
-    Product.find({_id: req.params.id}, function (err, product) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
+    .get(function (req, res) {
+        Product.find({_id: req.params.id}, function (err, product) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                data: product[0]
+            });
+        });
+    })
+    .put(function (req, res) {
+        Product.update({_id: req.params.id}, req.body, function (err) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                message: 'Produkt został zaktualizowany'
             });
 
-            return;
-        }
-
-        res.json({
-            status: true,
-            data: product[0]
         });
-    });
-})
-.put(function (req, res) {
-    Product.update({_id: req.params.id}, req.body, function (err) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
+    })
+    .delete(function (req, res) {
+        let ObjectId = new ObjectID(req.params.id);
+        Product.remove({_id: ObjectId}, function (err) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                message: 'Produkt został usunięty'
             });
-
-            return;
-        }
-
-        res.json({
-            status: true,
-            message: 'Produkt został zaktualizowany'
-        });
-
-    });
-})
-.delete(function(req, res) {
-    let ObjectId = new ObjectID(req.params.id);
-    Product.remove({_id: ObjectId}, function (err) {
-        if(err) {
-            res.send({
-                status: false,
-                error: err
-            });
-
-            return;
-        }
-
-        res.json({
-            status: true,
-            message: 'Produkt został usunięty'
         });
     });
-});
 
 router.route('/products/:status')
-.get(function(req, res) {
-    Product.find({$and: [{"status": req.params.status}, {"availability": {$gt: 0}}]}, function(err, products) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
+    .get(function (req, res) {
+        Product.find({$and: [{"status": req.params.status}, {"availability": {$gt: 0}}]}, function (err, products) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                data: products
             });
-
-            return;
-        }
-
-        res.json({
-            status: true,
-            data: products
-        });
+        }).sort({_id: 1} );
     });
-});
 
 router.post('/upload', multiparty({
     uploadDir: './media'
-}), function(req, res) {
+}), function (req, res) {
     let file = req.files.file;
 
     let imageName = file.path.split('/').reverse()[0];
@@ -210,229 +210,252 @@ router.post('/upload', multiparty({
 });
 
 router.route('/orders')
-.get(function(req, res) {
-    Order.find(function(err, orders) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
-            });
-        }
+    .get(function (req, res) {
+        Order.find(function (err, orders) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+            }
 
-        res.json({
-            status: true,
-            data: orders
+            res.json({
+                status: true,
+                data: orders
+            });
         });
     });
-});
 
 router.route('/order/:id')
-.get(function (req, res) {
-    Order.find({_id: req.params.id}, function (err, order) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
+    .get(function (req, res) {
+        Order.find({_id: req.params.id}, function (err, order) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                data: order[0]
+            });
+        });
+    })
+    .put(function (req, res) {
+        Order.update({_id: req.params.id}, req.body, function (err) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                message: 'Zamówienie został zaktualizowane'
             });
 
-            return;
-        }
-
-        res.json({
-            status: true,
-            data: order[0]
         });
-    });
-})
-.put(function (req, res) {
-    Order.update({_id: req.params.id}, req.body, function (err) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
+    })
+    .delete(function (req, res) {
+        var ObjectId = new ObjectID(req.params.id);
+        Order.remove({_id: ObjectId}, function (err) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                message: 'Zamówienie został usunięte'
             });
-
-            return;
-        }
-
-        res.json({
-            status: true,
-            message: 'Zamówienie został zaktualizowane'
-        });
-
-    });
-})
-.delete(function(req, res) {
-    var ObjectId = new ObjectID(req.params.id);
-    Order.remove({_id: ObjectId}, function (err) {
-        if(err) {
-            res.send({
-                status: false,
-                error: err
-            });
-
-            return;
-        }
-
-        res.json({
-            status: true,
-            message: 'Zamówienie został usunięte'
         });
     });
-});
 
 router.route('/order')
-.post(function(req, res) {
-    let order = new Order();
-    let products = [];
+    .post(function (req, res) {
+        let order = new Order();
+        let products = [];
+        let payment = {};
+        let activeShipment = {};
 
-    req.body.products.forEach(function(orderedProduct) {
-        products.push({
-            id: orderedProduct._id,
-            name: orderedProduct.name,
-            price: orderedProduct.price,
-            quantity: orderedProduct.quantity,
-            image: orderedProduct.image
-        });
-
-        var newAvailability = orderedProduct.availability - orderedProduct.quantity;
-        Product.update({_id: orderedProduct._id}, {availability: newAvailability}, function(err, message) {});
-    });
-
-    order.client = req.body.client;
-    order.products = products;
-    order.productsTotal = req.body.productsTotal;
-    order.total = req.body.total;
-    order.shipment.id = req.body.shipment._id;
-    order.shipment.name = req.body.shipment.name;
-    order.shipment.price = req.body.shipment.price;
-
-    order.save(function(err) {
-        if (err) {
-            console.log(err);
-            res.send({
-                status: false,
-                error: err
+        Config.find(function (err, config) {
+            config[0].statuses.forEach(function (status, index) {
+                order.status.push(status);
+                order.status[order.status.length - 1].selected = index === 0;
             });
 
-            return;
-        }
+            config[0].shipmentMethods.forEach(function (method) {
+                order.shipments.push(method);
 
-        //============ SEND EMAIL ==================//
-        let transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'sajnogmat@gmail.com',
-                pass: 'corellon'
-            }
-        });
+                order.shipments[order.shipments.length - 1].selected = req.body.shipment._id.toString() === method._id.toString();
+                if (req.body.shipment._id.toString() === method._id.toString()) {
+                    activeShipment = method;
+                }
+            });
 
-        var productsList = `<table width="100%" cellspacing="0" style="width: 100%; text-align: left; border: 1px solid grey; border-bottom: 0; margin: 10px 0 30px 0;">
-        <tr>
-        <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Nazwa</th>
-        <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Ilość</th>
-        <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Cena</th>
-        <th style="padding:5px; border-bottom: 1px solid grey; ">Suma</th>
-        </tr>`;
-        order.products.forEach(function(product) {
-            productsList += `<tr>
-            <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.name}</td>
-            <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.quantity}</td>
-            <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.price} zł</td>
-            <td style="padding:5px; border-bottom: 1px solid grey;">${(parseFloat(product.price)*product.quantity).toFixed(2)} zł</td>
+            req.body.products.forEach(function (orderedProduct) {
+                products.push({
+                    id: orderedProduct._id,
+                    name: orderedProduct.name,
+                    price: orderedProduct.price,
+                    quantity: orderedProduct.quantity,
+                    image: orderedProduct.image
+                });
+
+                var newAvailability = orderedProduct.availability - orderedProduct.quantity;
+                Product.update({_id: orderedProduct._id}, {availability: newAvailability}, function (err, message) {
+                });
+            });
+
+            order.client = req.body.client;
+            order.products = products;
+            order.productsTotal = req.body.productsTotal;
+            order.total = req.body.total;
+
+            order.save(function (err) {
+                if (err) {
+                    res.send({
+                        status: false,
+                        error: err
+                    });
+
+                    return;
+                }
+
+                //============ SEND EMAIL ==================//
+                let transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: 'sajnogmat@gmail.com',
+                        pass: 'corellon'
+                    }
+                });
+
+                payment = config[0].payment;
+
+                var productsList = `<table width="100%" cellspacing="0" style="width: 100%; text-align: left; border: 1px solid grey; border-bottom: 0; margin: 10px 0 30px 0;">
+            <tr>
+            <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Nazwa</th>
+            <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Ilość</th>
+            <th style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">Cena</th>
+            <th style="padding:5px; border-bottom: 1px solid grey; ">Suma</th>
             </tr>`;
+                order.products.forEach(function (product) {
+                    productsList += `<tr>
+                <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.name}</td>
+                <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.quantity}</td>
+                <td style="padding:5px; border-bottom: 1px solid grey; border-right: 1px solid grey;">${product.price} zł</td>
+                <td style="padding:5px; border-bottom: 1px solid grey;">${(parseFloat(product.price) * product.quantity).toFixed(2)} zł</td>
+                </tr>`;
+                });
+
+                productsList += `</table>`;
+
+                let mailOptions = {
+                    from: '"Supermiodek"', // sender address
+                    to: req.body.client.email, // list of receivers
+                    subject: 'Zamówienie z Supermiodek.pl', // Subject line
+                    text: 'Hello world ?', // plain text body
+                    html: `<table width="600" style="width: 600px">
+                <tr><td><h1>Dzień dobry ${order.client.name} ${order.client.surname}</td></tr>
+                <tr><td><b>Lista zamówionych produktów:</b></td></tr>
+                <tr><td>${productsList}</td></tr>
+                <tr><td><b>Adres dostawy:</b></td></tr>
+                <tr><td style="padding-bottom: 15px;">${order.client.shipment}</td></tr>
+                <tr><td><b>Sposób dostawy:</b></td></tr>
+                <tr><td style="padding-bottom: 15px;">${activeShipment.name} ${activeShipment.price} zł</td></tr>
+                <tr><td><b>Dane do płatności:</b></td></tr>
+                <tr><td style="padding-bottom: 15px;">
+                ${payment.name}<br>
+                ul. ${payment.address.street} ${payment.address.buildingNumber}/${payment.address.buildingNumber}<br>
+                ${payment.address.postalCode} ${payment.address.city}<br>
+                Nr konta: ${payment.account}
+                </td></tr>
+                </table>`
+                };
+
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    console.log('Message %s sent: %s', info.messageId, info.response);
+                });
+                //============ SEND EMAIL ==================//
+
+                res.json({
+                    status: true,
+                    message: 'Zamówienie zostało przyjęte. Na podany adres otrzymasz wiadomość z potwierdzeniem.'
+                });
+            });
         });
 
-        productsList += `</table>`;
-
-        let mailOptions = {
-            from: '"Supermiodek"', // sender address
-            to: req.body.client.email, // list of receivers
-            subject: 'Zamówienie z Supermiodek.pl', // Subject line
-            text: 'Hello world ?', // plain text body
-            html: `<table width="600" style="width: 600px">
-            <tr><td><h1>Dzień dobry ${order.client.name} ${order.client.surname}</td></tr>
-            <tr><td><b>Lista zamówionych produktów:</b></td></tr>
-            <tr><td>${productsList}</td></tr>
-            <tr><td><b>Adres dostawy:</b></td></tr>
-            <tr><td style="padding-bottom: 15px;">${order.client.shipment}</td></tr>
-            <tr><td><b>Sposób dostawy:</b></td></tr>
-            <tr><td style="padding-bottom: 15px;">${order.shipment.name} ${order.shipment.price} zł</td></tr>
-            <tr><td><b>Dane do płatności:</b></td></tr>
-            <tr><td style="padding-bottom: 15px;">Jan Kowalski<br>ul. Warszawska 7/23<br>22-900 Lublin<br>Nr konta: 1234 1234 1234 1234 1234</td></tr>
-            </table>`
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return console.log(error);
-            }
-            console.log('Message %s sent: %s', info.messageId, info.response);
-        });
-        //============ SEND EMAIL ==================//
-
-        res.json({
-            status: true,
-            message: 'Zamówienie zostało przyjęte. Na podany adres otrzymasz wiadomość z potwierdzeniem.'
-        });
     });
-});
 
 router.route('/config')
-.get(function(req, res) {
-    Config.find(function(err, config) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
-            });
-        }
+    .get(function (req, res) {
+        Config.find(function (err, config) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+            }
 
-        res.json({
-            status: true,
-            data: config[0]
+            res.json({
+                status: true,
+                data: config[0]
+            });
+        });
+    })
+    .post(function (req, res) {
+        let config = new Config(req.body);
+
+        config.save(function (err) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                message: 'Konfiguracja została zapisana'
+            });
         });
     });
-})
-.post(function (req, res) {
-    let config = new Config(req.body);
-
-    config.save(function(err) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
-            });
-
-            return;
-        }
-
-        res.json({
-            status: true,
-            message: 'Konfiguracja została zapisana'
-        });
-    });
-});
 
 router.route('/config/:id')
-.put(function (req, res) {
-    Config.update({_id: req.params.id}, req.body, function (err) {
-        if (err) {
-            res.send({
-                status: false,
-                error: err
+    .put(function (req, res) {
+        Config.update({_id: req.params.id}, req.body, function (err) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+
+                return;
+            }
+
+            res.json({
+                status: true,
+                message: 'Konfiguracja została zaktualizowana'
             });
 
-            return;
-        }
-
-        res.json({
-            status: true,
-            message: 'Konfiguracja została zaktualizowana'
         });
-
     });
-});
 
 
 // REGISTER OUR ROUTES -------------------------------
