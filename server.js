@@ -13,7 +13,7 @@ const passport = require('passport');
 // var db = require('mongodb').Db;
 const ObjectID = require('mongodb').ObjectID;
 const config = require('./config/database');
-// var jwt = require('jwt-simple');
+var jwt = require('jwt-simple');
 // var fs = require('fs');
 const multiparty = require('connect-multiparty');
 
@@ -25,6 +25,7 @@ const nodemailer = require('nodemailer');
 const Product = require('./app/models/product');
 const Order = require('./app/models/order');
 const Config = require('./app/models/config');
+const User = require('./app/models/user');
 
 const port = process.env.PORT || 8080; // set our port
 
@@ -63,7 +64,7 @@ router.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
     // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,authorization');
 
     // Set to true if you need the website to include cookies in the requests sent
     // to the API (e.g. in case you use sessions)
@@ -456,6 +457,49 @@ router.route('/config/:id')
 
         });
     });
+
+router.post('/signup', function (req, res) {
+    if (!req.body.name || !req.body.password) {
+        res.json({status: false, msg: 'Please pass name and password.'});
+    } else {
+        var newUser = new User({
+            name: req.body.name,
+            password: req.body.password
+        });
+    }
+
+    newUser.save(function(err) {
+        if (err) {
+            return res.json({status: false, msg: 'Username already exists.'});
+        }
+        res.json({status: true, msg: 'Successful created new user.'});
+    });
+});
+
+router.post('/authenticate', function (req, res) {
+    User.findOne({
+        name: req.body.name
+    }, function (err, user) {
+        if (err) throw err;
+
+        if (!user) {
+            res.send({status: false, msg: 'Authentication failed. User not found'});
+        } else {
+            // check if password matches
+            user.comparePassword(req.body.password, function (err, isMatch) {
+                if (isMatch && !err) {
+                    // if user is found and password is right create a token
+                    var token = jwt.encode(user, config.secret);
+                    // return the information including token as JSON
+                    res.send({status: true, token: 'JWT ' + token});
+                    console.log({status: true, token: 'JWT ' + token});
+                } else {
+                    res.send({status: false, msg: 'Authentication failed. Wrong password'});
+                }
+            });
+        }
+    });
+});
 
 
 // REGISTER OUR ROUTES -------------------------------
