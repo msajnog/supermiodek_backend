@@ -501,6 +501,58 @@ router.post('/authenticate', function (req, res) {
     });
 });
 
+router.post('/contact', function (req, res) {
+    console.log(req.body);
+
+    Config.findOne(function(err, config) {
+
+        let contact = req.body;
+
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'sajnogmat@gmail.com',
+                pass: 'corellon'
+            }
+        });
+
+        let mailOptions = {
+            from: contact.email, // sender address
+            to: 'sajnogmat@gmail.com', // list of receivers
+            subject: contact.subject, // Subject line
+            text: contact.content, // plain text body
+            html: `<table width="600" style="width: 600px">
+                <tr><td><h1>${contact.content}</td></tr>
+                </table>`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return console.log(error);
+            }
+            console.log('Message %s sent: %s', info.messageId, info.response);
+        });
+
+        if (contact.sendCopy) {
+            mailOptions.to = contact.email;
+
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    return console.log(error);
+                }
+                console.log('Message %s sent: %s', info.messageId, info.response);
+            });
+
+            res.json({
+                status: true,
+                message: 'Wiadomość została wysłana'
+            });
+            //============ SEND EMAIL ==================//
+        }
+    });
+
+});
+
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
