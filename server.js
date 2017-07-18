@@ -517,12 +517,16 @@ router.post('/contact', function (req, res) {
         });
 
         let mailOptions = {
-            from: contact.email, // sender address
+            from: `${contact.name} <${contact.email}>`, // sender address
             to: 'sajnogmat@gmail.com', // list of receivers
             subject: contact.subject, // Subject line
-            text: contact.content, // plain text body
-            html: `<table width="600" style="width: 600px">
-                <tr><td><h1>${contact.content}</td></tr>
+            text: `${contact.name}, ${contact.email}, ${contact.phone}, ${contact.subject} ${contact.content}`, // plain text body
+            html: `<table width="600" style="width: 600px; margin: 0 auto;">
+                <tr><td width="110"><b>Imię i nazwisko:</b></td><td>${contact.name}</tr>
+                <tr><td width="110"><b>E-mail:</b></td><td>${contact.email}</tr>
+                <tr><td width="110"><b>Telefon:</b></td><td>${contact.phone}</tr>
+                <tr><td width="110"><b>Temat:</b></td><td>${contact.subject}</tr>
+                <tr><td width="110"><b>Treść:</b></td><td>${contact.content}</tr>
                 </table>`
         };
 
