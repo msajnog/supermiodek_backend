@@ -78,6 +78,13 @@ router.get('/', function (req, res) {
     });
 });
 
+// START THE SERVER
+// =============================================================================
+var serverAddress;
+var server = app.listen(port, '127.0.0.1', () => {
+  serverAddress = server.address();
+});
+
 // MOVIE ROUTES
 router.route('/products')
     .post(function (req, res) {
@@ -115,6 +122,10 @@ router.route('/products')
                     error: err
                 });
             }
+
+            products.forEach(product => {
+              product.image = `http://${serverAddress.address}:${serverAddress.port}/${product.image}`
+            });
 
             res.json({
                 status: true,
@@ -562,7 +573,5 @@ router.post('/contact', function (req, res) {
 // all of our routes will be prefixed with /api
 app.use('/api', router);
 
-// START THE SERVER
-// =============================================================================
-app.listen(port);
+
 console.log('There will be dragons: http://localhost:' + port);
