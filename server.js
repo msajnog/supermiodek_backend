@@ -58,7 +58,7 @@ const router = express.Router(); // get an instance of the express Router
 router.use(function (req, res, next) {
     console.log('Something is happening');
     // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:9000');
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost');
 
     // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -513,8 +513,6 @@ router.post('/authenticate', function (req, res) {
 });
 
 router.post('/contact', function (req, res) {
-    console.log(req.body);
-
     Config.findOne(function(err, config) {
 
         let contact = req.body;
@@ -545,7 +543,6 @@ router.post('/contact', function (req, res) {
             if (error) {
                 return console.log(error);
             }
-            console.log('Message %s sent: %s', info.messageId, info.response);
         });
 
         if (contact.sendCopy) {
@@ -555,15 +552,14 @@ router.post('/contact', function (req, res) {
                 if (error) {
                     return console.log(error);
                 }
-                console.log('Message %s sent: %s', info.messageId, info.response);
-            });
-
-            res.json({
-                status: true,
-                message: 'Wiadomość została wysłana'
             });
             //============ SEND EMAIL ==================//
         }
+
+        res.json({
+            status: true,
+            message: 'Wiadomość została wysłana'
+        });
     });
 
 });
