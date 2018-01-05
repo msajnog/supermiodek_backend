@@ -58,7 +58,7 @@ const router = express.Router(); // get an instance of the express Router
 router.use(function (req, res, next) {
     console.log('Something is happening');
     // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost');
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:9000');
 
     // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -468,6 +468,23 @@ router.route('/config/:id')
 
         });
     });
+
+  router.route('/config/shipmentMethods')
+    .get(function (req, res) {
+        Config.find(function (err, config) {
+            if (err) {
+                res.send({
+                    status: false,
+                    error: err
+                });
+            }
+
+            res.json({
+                status: true,
+                data: config[0].shipmentMethods
+            });
+        });
+    })
 
 router.post('/signup', function (req, res) {
     if (!req.body.name || !req.body.password) {
