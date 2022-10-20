@@ -19,7 +19,7 @@
     "connect-multiparty": "^2.0.0",
     "express": "^4.13.4",
     "jwt-simple": "^0.5.6",
-    "mongoose": "~4.2.4",
+    "mongoose": "~4.13.21",
     "morgan": "^1.9.1",
     "nodemailer": "^4.0.1",
     "passport": "^0.3.0",
